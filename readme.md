@@ -1,37 +1,99 @@
-このファイルは、PDF、PowerPoint (PPTX)、画像ファイル (JPEG, PNGなど) を入力として受け取り、それらの内容をMarkdown形式に変換するプログラムです。 変換にはGoogleのGemini APIを使用しています。
+# Markdown変換ツール
 
-初心者向けにステップごとに説明します。
-①ファイルの読み込み: プログラムは、コマンドライン引数からファイル名を受け取ります。 例えば、python converter.py my_document.pdf と実行すると、my_document.pdf ファイルを読み込みます。
-②ファイル形式の判定: プログラムはファイルの拡張子（.pdf, .pptx, .jpg, .png など）をチェックして、入力ファイルの種類を判別します。
-③テキストと画像の抽出: ファイルの種類に応じて、適切な方法でファイルからテキストと画像を抽出します。
-④PDF: pymupdf ライブラリを使って、PDFファイルからテキストと画像を抽出します。
-⑤PPTX: python-pptx ライブラリを使って、PowerPointファイルからテキストと画像を抽出します。
-画像: 画像ファイルの場合は、画像データを読み込み、Base64エンコードします。
-⑥Gemini APIへのリクエスト: 抽出したテキストと画像データを、GoogleのGemini APIに送信します。 Gemini APIは、高度な自然言語処理モデルで、入力されたテキストと画像を理解し、それらを要約したMarkdown形式のテキストを生成します。 この際に、ファイルの種類に応じて適切なプロンプト（指示）をAPIに送ります。例えば、PDFの場合は「PDFの内容をMarkdownで説明してください」といった指示です。
-⑦Markdownの出力: Gemini APIから返ってきたMarkdown形式のテキストを、プログラムの出力として表示します。
+PDF、画像、PowerPointファイルをMarkdown形式に変換するツールです。Gemini APIを使用して、ファイルの内容を解析し、Markdown形式で出力します。
 
-簡単に言うと、このプログラムは様々な種類のファイルを、人間が読みやすいMarkdown形式の文書に変換するお手伝いをしてくれるツールです。 例えば、PDFの論文をMarkdownに変換してブログ記事にしたり、PowerPointのプレゼンテーションをMarkdownで整理したりできます。
-このプログラムを実行するには、pymupdf, python-pptx, Pillow, requests などのライブラリをインストールする必要があります。 また、Google Cloud PlatformでGemini APIを使用するためのAPIキーを設定する必要があります。 プログラムの先頭部分で環境変数からAPIキーを読み込んでいるので、環境変数にAPIキーを設定する必要があります。
 
-## バッチ変換
+## 機能
 
-複数のファイルをまとめて変換するには、`batch_convert.sh` スクリプトを使用します。このスクリプトは、指定されたディレクトリ内のファイル、またはコマンドライン引数で指定されたファイル/ディレクトリを処理します。
+- PDFファイルの変換
+- 画像ファイル（JPG、PNG）の変換
+- PowerPointファイル（PPTX）の変換
+- 複数ファイルの一括処理
+- 変換結果のJSON形式での保存
+- 各ファイルの変換結果を個別のテキストファイルとして保存
 
-### `batch_convert.sh` の使用方法
+## 必要条件
 
-`batch_convert.sh` の具体的な動作はスクリプトの内容に依存しますが、一般的には以下の様な使用方法が考えられます。
+- Python 3.x
+- conda環境（doc環境）
+- Gemini APIキー
+- 必要なPythonパッケージ：
+  - requests
+  - Pillow
+  - python-dotenv
+  - pymupdf（PDF処理用）
+  - python-pptx（PowerPoint処理用）
 
-**例1: 指定ディレクトリ内のPDFファイル一括変換**
+## セットアップ
 
-`input_files` ディレクトリにPDFファイルを配置し、`bash batch_convert.sh` を実行します。  スクリプトは `input_files` ディレクトリ内のすべてのPDFファイルに対して `converter.py` を実行します。
+1. conda環境の作成と有効化：
 
-**例2: コマンドライン引数によるファイル/ディレクトリ指定**
+```bash
+conda create -n doc python=3.x
+conda activate doc
+```
 
-`bash batch_convert.sh file1.pdf file2.pdf`  のように、ファイルまたはディレクトリをコマンドライン引数として指定して実行します。  ディレクトリを指定した場合、その中のPDFファイルが処理されます。
+2. 必要なパッケージのインストール：
 
-**例3: ファイル拡張子の指定**
+```bash
+pip install -r requirements.txt
+```
 
-`batch_convert.sh` がファイル拡張子を指定して処理するようになっている場合、スクリプトの実行時にディレクトリを指定することで、そのディレクトリ内の特定の拡張子のファイルのみが処理されます。
+3. 環境変数の設定：
+   `.env`ファイルを作成し、Gemini APIキーを設定：
 
-**注意:** `batch_convert.sh` の具体的な使用方法については、スクリプトファイル自身を確認してください。  エラー処理や、処理対象ファイルの指定方法などが記述されているはずです。
+```
+gemini_api_key=your_api_key_here
+```
 
+## 使用方法
+
+### 1. 単一ファイルの変換
+
+```bash
+python converter.py input_file.pdf
+```
+
+### 2. 複数ファイルの一括変換
+
+`batch_convert.sh`を使用して、ディレクトリ内のすべての対象ファイルを変換：
+
+```bash
+# 現在のディレクトリのファイルを変換
+./batch_convert.sh
+
+# 特定のディレクトリのファイルを変換
+./batch_convert.sh /path/to/your/files
+```
+
+### 3. 出力
+
+変換結果は以下の形式で保存されます：
+
+- `output_data/output_data.json`: すべての変換結果とエラー情報を含むJSONファイル
+- `output_data/[ファイル名].txt`: 各ファイルの変換結果を個別のテキストファイル
+
+## サポートされているファイル形式
+
+- PDFファイル（.pdf）
+- 画像ファイル（.jpg, .jpeg, .png, .JPG, .PNG）
+- PowerPointファイル（.ppt, .pptx）
+
+## エラーハンドリング
+
+- ファイルが見つからない場合
+- 変換に失敗した場合
+- APIキーが設定されていない場合
+- その他のエラー
+
+エラー情報は `output_data.json`に記録され、コンソールにも表示されます。
+
+## 注意事項
+
+- Gemini APIキーが必要です
+- 大量のファイルを処理する場合は、APIの制限に注意してください
+- 画像ファイルの処理には時間がかかる場合があります
+
+## ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています。
